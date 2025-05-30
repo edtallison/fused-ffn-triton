@@ -15,9 +15,10 @@ def benchmark():
 
     # Pytorch baseline
     model = FusedBlockTorch(N).to(device)
-    model.linear.weight.data.copy_(w1)
+    model.linear1.weight.data.copy_(w1)
+    model.linear1.bias.data.zero_()
     model.linear2.weight.data.copy_(w2)
-    model.linear.bias.data.zero_()
+    model.linear2.bias.data.zero_()
 
     # warmup
     for _ in range(10):

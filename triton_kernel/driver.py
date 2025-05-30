@@ -8,7 +8,8 @@ def fused_block_triton(x: torch.Tensor, w1: torch.Tensor, w2: torch.Tensor, eps:
 
     Args:
         x: input tensor of shape (M, N)
-        w: weight tensor of shape (N, N)
+        w1: weight tensor of shape (N, N)
+        w2: weight tensor of shape (N, N)
         eps: epsilon for LayerNorm stability
     Returns:
         y: output tensor of shape (M, N)
