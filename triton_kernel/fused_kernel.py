@@ -22,7 +22,7 @@ def fused_kernel(
 
     # layernorm
     mean = tl.sum(x_row, axis=0) / N
-    var = tl.sum((x_row - mean) ** 2, axis=0) / N
+    var = tl.sum((x_row - mean) * (x_row - mean), axis=0) / N
     x_norm = (x_row - mean) / tl.sqrt(var + eps)
 
     # linear1
