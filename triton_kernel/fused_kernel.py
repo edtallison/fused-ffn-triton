@@ -4,36 +4,40 @@ import torch
 
 @triton.jit
 def fused_kernel(
-    x_ptr, w_ptr, y_ptr, # pointers to input, weight, output in GPU memory
+    x_ptr, w1_ptr, w2_ptr, y_ptr, # pointers to input, weight, output in GPU memory
     stride_xm, stride_xn,
-    stride_wm, stride_wn,
+    stride_w1m, stride_w1n,
+    stride_w2m, stride_w2n,
     stride_ym, stride_yn,
     M: tl.constexpr, N: tl.constexpr,
     eps: tl.constexpr,
 ):
-    row = tl.program_id(0) 
-    col = tl.program_id(1)
+    # which row we are operating on
+    row = tl.program_id(0)
 
-    # flat offsets
-    offs_x = row * stride_xm + col * stride_xn
-    offs_w = row * stride_wm + tl.arange(0, N)
+    # load the row
+    offs_x = row * stride_xm
+    idxs = tl.arange(0, N)
+    x_row = tl.load(x_ptr + offs_x + idxs * stride_xn, mask=idxs < N, other=0.0)
 
-    # load input element
-    x_val = tl.load(x_ptr + offs_x)
+    # layernorm
+    mean = tl.sum(x_row, axis=0) / N
+    var = tl.sum((x_row - mean) ** 2, axis=0) / N
+    x_norm = (x_row - mean) / tl.sqrt(var + eps)
 
-    # === LayerNorm (per row) ===
-    # For simplicity, assume M=1 or pre-normalized input; real impl should
-    # compute mean & var over the full row via two-pass reduction.
+    # linear1
+    offs_w1 = row * stride_w1m
+    w1_row = tl.load(w1_ptr + offs_w1 + idxs * stride_w1n, mask=idxs < N, other=0.0)
+    hidden = tl.dot(x_norm, w1_row)
 
-    # === Linear (dot product) ===
-    # Load weight row and perform dot
-    # TODO: replace with block-wise matmul for full rows
-    w_row = tl.load(w_ptr + offs_w)
-    dot = tl.dot(x_val, w_row)
+    # gelu
+    gelu = 0.5 * hidden * (1.0 + tl.erf(hidden / tl.sqrt(2.0)))
 
-    # === GELU ===
-    gelu = 0.5 * dot * (1.0 + tl.erf(dot / tl.sqrt(2.0)))
+    # linear2
+    offs_w2 = row * stride_w2m
+    w2_row = tl.load(w2_ptr + offs_w2 + idxs * stride_w2n, mask=idxs < N, other=0.0)
+    out = tl.dot(gelu, w2_row)
 
     # store result
-    out_offs = row * stride_ym + col * stride_yn
-    tl.store(y_ptr + out_offs, gelu)
+    offs_y = row * stride_ym
+    tl.store(y_ptr + offs_y + idxs * stride_yn, out, mask=idxs < N)

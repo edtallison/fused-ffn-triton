@@ -10,7 +10,8 @@ def benchmark():
     device = "cuda"
 
     x = torch.randn((M, N), device=device)
-    w = torch.randn((N, N), device=device)
+    w1 = torch.randn((N, N), device=device)
+    w2 = torch.randn((N, N), device=device)
 
     # Pytorch baseline
     model = FusedBlockTorch(N).to(device)
@@ -32,7 +33,7 @@ def benchmark():
     torch.cuda.synchronize()
     t0 = time.time()
     for _ in range(100):
-        _ = fused_block_triton(x, w)
+        _ = fused_block_triton(x, w1, w2)
     torch.cuda.synchronize()
     triton_time = time.time() - t0
 
