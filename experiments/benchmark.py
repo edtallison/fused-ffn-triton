@@ -10,7 +10,7 @@ def benchmark():
     device = "cuda"
 
     x = torch.randn((M, N), device=device)
-    w = torch.randn((M, N), device=device)
+    w = torch.randn((N, N), device=device)
 
     # Pytorch baseline
     model = FusedBlockTorch(N).to(device)
