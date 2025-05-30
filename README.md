@@ -1,12 +1,20 @@
-# Fused Transformer Block
+# Fused FFN Kernel in Triton
 
-## Setup
+## Architecture
 
-```bash
-brew install pyenv
-pyenv install 3.12.3
-pyenv local 3.12.3
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
+Kernel is implemented in `triton_kernel/fused_kernel.py`
+
+The kernel fuses:
+- LayerNorm
+- Linear (`x @ W + b`)
+- GELU activation
+
+### Run in Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/edtallison/fused-ffn-triton/blob/main/notebooks/demo.ipynb)
+
+The notebook will:
+- Clone this repo
+- Install dependencies (Triton, PyTorch)
+- Run the Triton and PyTorch versions of the FFN block
+- Benchmark their performance

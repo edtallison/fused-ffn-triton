@@ -1,2 +1,2 @@
 torch
-git+https://github.com/openai/triton.git
+triton
