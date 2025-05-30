@@ -6,8 +6,9 @@ Kernel is implemented in `triton_kernel/fused_kernel.py`
 
 The kernel fuses:
 - LayerNorm
-- Linear (`x @ W + b`)
+- Linear (`x @ W`) 
 - GELU activation
+- Linear (`x @ W`)
 
 ### Run in Colab
 
