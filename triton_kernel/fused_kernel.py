@@ -28,7 +28,7 @@ def fused_kernel(
     # linear1
     offs_w1 = row * stride_w1m
     w1_row = tl.load(w1_ptr + offs_w1 + idxs * stride_w1n, mask=idxs < N, other=0.0)
-    hidden = tl.dot(x_norm, w1_row)
+    hidden = tl.sum(x_norm * w1_row, axis=0) # dot product
 
     # gelu
     gelu = 0.5 * hidden * (1.0 + tl.erf(hidden / tl.sqrt(2.0)))
@@ -36,7 +36,7 @@ def fused_kernel(
     # linear2
     offs_w2 = row * stride_w2m
     w2_row = tl.load(w2_ptr + offs_w2 + idxs * stride_w2n, mask=idxs < N, other=0.0)
-    out = tl.dot(gelu, w2_row)
+    out = tl.sum(gelu * w2_row, axis=0)
 
     # store result
     offs_y = row * stride_ym
