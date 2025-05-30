@@ -12,6 +12,11 @@ def benchmark():
     x = torch.randn((M, N), device=device)
     w = torch.randn((N, N), device=device)
 
+    print(f"x shape: {x.shape}")              # should be (128, 4096)
+    print(f"w shape: {w.shape}")              # should be (4096, 4096)
+    print(f"model.linear.weight shape: {model.linear.weight.data.shape}")  # should be (4096, 4096)
+
+
     # Pytorch baseline
     model = FusedBlockTorch(N).to(device)
     model.linear.weight.data.copy_(w)
