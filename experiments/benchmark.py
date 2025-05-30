@@ -5,6 +5,7 @@ from torch_baseline.fused_block import FusedBlockTorch
 from triton_kernel.driver import fused_block_triton
 
 def benchmark():
+    print("Running benchmark...")
     torch.manual_seed(0)
     M, N = 128, 4096
     device = "cuda"
